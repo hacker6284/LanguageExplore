@@ -56,17 +56,15 @@ pathArray:= Array new: numberOfPoints asInteger.
 "choose a starting point"
 firstPoint := pointsSet anyOne.
 pathArray at: 1 put: firstPoint.
-pointsSet remove: firstPoint ifAbsent: firstPoint
+pointsSet remove: firstPoint ifAbsent: firstPoint.
 
 "loop through each point and determine which is closest"
 
 counter := 2.
-[pointsArray isEmpty] whileFalse:[
-  thisPoint := pointsArray first.
+pointsSet do: [ :thisPoint |
   (thisPoint getLocation_x) print.
   (thisPoint getLocation_y) printNl.
   pathArray at: counter put: thisPoint.
-  pointsArray removeFirst.
   counter := counter + 1
 ].
 "f position: 0.
