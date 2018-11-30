@@ -45,8 +45,8 @@ pointsSet := Bag new: numberOfPoints asInteger.
 numberOfPoints asInteger timesRepeat: [
   pointArray := f nextLine substrings: ' '.
   newPoint := Partier new.
-  newPoint setLocation_x: pointArray first.
-  newPoint setLocation_y: pointArray last.
+  newPoint setLocation_x: (pointArray first) asInteger.
+  newPoint setLocation_y: (pointArray last) asInteger.
   pointsSet add: newPoint
 ].
 
@@ -61,11 +61,36 @@ pointsSet remove: firstPoint ifAbsent: firstPoint.
 "loop through each point and determine which is closest"
 
 counter := 2.
-pointsSet do: [ :thisPoint |
-  (thisPoint getLocation_x) print.
-  (thisPoint getLocation_y) printNl.
-  pathArray at: counter put: thisPoint.
-  counter := counter + 1
+
+"Get any random point as the minimum point guess"
+[pointsSet size == 0] whileFalse:[
+  minPoint := pointsSet anyOne.
+  pointsSet remove: minPoint ifAbsent: ['damn' printNl.].
+
+  x_distance := ((minPoint getLocation_x) - (pathArray at: counter - 1) getLocation_x) abs.
+  y_distance := ((minPoint getLocation_y) - (pathArray at: counter - 1) getLocation_y) abs.
+  min_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) raisedTo: 0.5.
+
+  "loop and find the minimum distance"
+  pointsSet do: [ :thisPoint |
+    x_distance := ((thisPoint getLocation_x) - (pathArray at: counter - 1) getLocation_x) abs.
+    y_distance := ((thisPoint getLocation_y) - (pathArray at: counter - 1) getLocation_y) abs.
+    total_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) raisedTo: 0.5.
+
+    (total_distance < min_distance) ifTrue: [
+      pointsSet add: minPoint.
+      min_distance := total_distance.
+      minPoint := thisPoint.
+      pointsSet remove: thisPoint ifAbsent: ['unbelievable' printNl.].
+      pathArray at: counter put: minPoint
+    ]
+  ].
+  counter := counter + 1.
+].
+
+counter := 1.
+pathArray size timesRepeat: [
+  (pathArray at: counter) getLocation_x printNl.
 ].
 "f position: 0.
 4 timesRepeat: [ Transcript nextPut: (f next) ]."
