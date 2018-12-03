@@ -41,34 +41,100 @@ f := FileStream open: 'input.txt' mode: FileStream read.
 "f linesDo: [ :c | Transcript nextPutAll: c; nl ]."
 numberOfPoints := f nextLine.
 "create array of size specified in file"
-pointsSet := Bag new: numberOfPoints asInteger.
+pointsSet := Array new: numberOfPoints asInteger.
+count := 1.
 numberOfPoints asInteger timesRepeat: [
   pointArray := f nextLine substrings: ' '.
   newPoint := Partier new.
   newPoint setLocation_x: (pointArray first) asInteger.
   newPoint setLocation_y: (pointArray last) asInteger.
-  pointsSet add: newPoint deepCopy.
-].
-
-pointsSet do: [ :testPoint |
-  testPoint getLocation_x printNl.
-  testPoint getLocation_y printNl.
+  pointsSet at: count put: newPoint deepCopy.
+  count := count + 1.
 ].
 
 "create array for storing decisions"
 pathArray:= Array new: numberOfPoints asInteger.
 
 "choose a starting point"
-firstPoint := pointsSet anyOne.
+"firstPoint := pointsSet anyOne.
 pathArray at: 1 put: firstPoint.
-pointsSet remove: firstPoint.
+pointsSet remove: firstPoint."
 
-'First point removed' printNl.
+"
+pointsSet do: [ :testPoint |
+  testPoint getLocation_x printNl.
+  testPoint getLocation_y printNl.
+].
+"
 
 "loop through each point and determine which is closest"
 
-^counter := 2.
+"Remove starting point"
+currentPoint := pointsSet at: 1.
+pathArray at: 1 put: currentPoint.
+pointsSet at: 1 put: nil.
+
+count := 2.
+min_dist := 100.
+
+numberOfPoints asInteger timesRepeat: [
+  'current point' printNl.
+  currentPoint getLocation_x printNl.
+  currentPoint getLocation_y printNl.
+  i := 1.
+  "loop to find the next closest point"
+  pointsSet do: [ :testPoint |
+    (testPoint == nil) ifFalse: [
+      testX := testPoint getLocation_x.
+      testY := testPoint getLocation_y.
+      x_distance := (testX - (currentPoint getLocation_x)) abs.
+      y_distance := (testY - (currentPoint getLocation_y)) abs.
+      total_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) raisedTo: 0.5.
+
+      (total_distance < min_dist) ifTrue: [
+        'new minimum' printNl.
+        minX := testX.
+        minY := testY.
+        min_dist := total_distance.
+      ].
+      i := i + 1.
+    ].
+  ].
+  'next point' printNl.
+  minX printNl.
+  minY printNl.
+
+  j := 1.
+  pointsSet do: [ :testPoint |
+    (testPoint == nil) ifFalse: [
+      ((testPoint getLocation_x == minX) and: [(testPoint getLocation_y == minY)]) ifTrue: [
+        'adding point' printNl.
+        currentPoint setLocation_x: (testPoint getLocation_x).
+        currentPoint setLocation_y: (testPoint getLocation_y).
+        pathArray at: count put: currentPoint.
+        pointsSet at: j put: nil.
+        count := count + 1.
+        min_dist := 100.
+      ].
+    ].
+    j := j + 1.
+  ].
+].
+
+pointsSet size printNl.
+
+"pathArray do: [ :testPoint |
+  testPoint getLocation_x printNl.
+  testPoint getLocation_y printNl.
+]."
+
+    "firstPoint := pointsSet anyOne.
+    pathArray at: count put: firstPoint.
+    pointsSet remove: firstPoint.
+    count := count + 1."
+
 "Get any random point as the minimum point guess"
+"
 [pointsSet size == 0] whileFalse:[
   'loop iteration: ' printNl.
   counter printNl.
@@ -83,8 +149,9 @@ pointsSet remove: firstPoint.
   x_distance := ((minPoint getLocation_x) - (pathArray at: counter - 1) getLocation_x) abs.
   y_distance := ((minPoint getLocation_y) - (pathArray at: counter - 1) getLocation_y) abs.
   min_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) raisedTo: 0.5.
-
+"
   "loop and find the minimum distance"
+  "
   pointsSet do: [ :thisPoint |
     x_distance := ((thisPoint getLocation_x) - (pathArray at: counter - 1) getLocation_x) abs.
     y_distance := ((thisPoint getLocation_y) - (pathArray at: counter - 1) getLocation_y) abs.
@@ -98,7 +165,7 @@ pointsSet remove: firstPoint.
       pathArray at: counter put: minPoint
     ]
   ].
-  ^counter := counter + 1.
+  counter := counter + 1.
 ].
 
 'Answer:' printNl.
@@ -109,6 +176,7 @@ pathArray size timesRepeat: [
   (pathArray at: counter) getLocation_y printNl.
   counter := counter + 1
 ].
+"
 "f position: 0.
 4 timesRepeat: [ Transcript nextPut: (f next) ]."
 f close
