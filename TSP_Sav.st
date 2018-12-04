@@ -42,6 +42,14 @@ Object subclass: Partier [
         <category: 'distance stuff'>
         distance := dist
     ]
+    printOn: stream [
+      <category: 'printing'>
+      stream nextPutAll: '('.
+      location_x printOn: stream.
+      stream nextPutAll: ','.
+      location_y printOn: stream.
+      stream nextPutAll: ')'.
+    ]
 ].
 
 Object subclass: TSPSolver [
@@ -53,7 +61,7 @@ Object subclass: TSPSolver [
       ^r
   ]
   init [
-    | f numberOfPoints pointsSet count pointArray newPoint pathArray currentPoint minimum min_dist testX testY x_distance y_distance total_distance i j|
+    | f numberOfPoints pointsSet count pointArray newPoint pathArray currentPoint minimum min_dist testX testY x_distance y_distance total_distance i j userSet userPath userChoice difference|
     "read in from the file"
     f := FileStream open: 'input.txt' mode: FileStream read.
     numberOfPoints := f nextLine.
@@ -69,9 +77,11 @@ Object subclass: TSPSolver [
       pointsSet at: count put: newPoint deepCopy.
       count := count + 1.
     ].
+    userSet := pointsSet deepCopy.
 
     "create array for storing decisions"
-    pathArray:= Array new: (numberOfPoints asInteger) + 1.
+    pathArray := Array new: (numberOfPoints asInteger) + 1.
+    userPath := pathArray deepCopy.
 
     "Remove starting point"
     currentPoint := pointsSet at: 1.
@@ -123,6 +133,34 @@ Object subclass: TSPSolver [
       ].
     ].
 
+    "Do user stuff"
+    currentPoint := (userSet at: 1) deepCopy.
+    userPath at: 1 put: currentPoint deepCopy.
+    userSet at: 1 put: nil.
+    i := 2.
+    (numberOfPoints asInteger) - 1 timesRepeat: [
+      'You are at: ' display.
+      currentPoint displayNl.
+      'Choose a point from the following to travel to: ' displayNl.
+      j := 1.
+      userSet do: [ :printPoint |
+        (printPoint == nil) ifFalse: [
+          j display.
+          ': ' display.
+          printPoint displayNl.
+        ].
+        j := j + 1.
+      ].
+      'Enter choice: ' display.
+      userChoice := (stdin nextLine) asInteger.
+
+      userPath at: i put: ((userSet at: userChoice) deepCopy).
+      currentPoint := ((userSet at: userChoice) deepCopy).
+      userSet at: userChoice put: nil.
+
+      i := i + 1.
+    ].
+
     "add initial point to the end of the path array"
     pathArray at: (pathArray size) put: (pathArray at: 1) deepCopy.
 
@@ -141,8 +179,58 @@ Object subclass: TSPSolver [
       currentPoint setLocation_y: (testPoint getLocation_y).
     ].
 
-    'Total distance: ' display.
+    Transcript cr.
+    'Nearest Neighbor Path: ' display.
+    pathArray do: [ :printPoint |
+      printPoint display.
+      ', ' display.
+    ].
+    Transcript cr.
+    'Nearest Neighbor Total Distance: ' display.
     total_distance displayNl.
+
+    difference := total_distance deepCopy.
+
+    "add initial point to the end of the path array"
+    userPath at: (userPath size) put: (userPath at: 1) deepCopy.
+
+    "repurpose total_distance variable"
+    total_distance := 0.
+
+    "repurpose other variables"
+    currentPoint := userPath at: 1 deepCopy.
+
+    userPath do: [ :testPoint |
+
+      x_distance := ((testPoint getLocation_x) - (currentPoint getLocation_x)) abs.
+      y_distance := ((testPoint getLocation_y) - (currentPoint getLocation_y)) abs.
+      total_distance := total_distance + ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) asFloatE sqrt.
+      currentPoint setLocation_x: (testPoint getLocation_x).
+      currentPoint setLocation_y: (testPoint getLocation_y).
+    ].
+
+    Transcript cr.
+    'Your Path: ' display.
+    userPath do: [ :printPoint |
+      printPoint display.
+      ', ' display.
+    ].
+    Transcript cr.
+    'Your Total Distance: ' display.
+    total_distance displayNl.
+
+    "repurpose total_distance again"
+    difference := difference - total_distance.
+
+    (difference asInteger == 0) ifTrue: [
+      'You tied. Nice work!' displayNl.
+    ].
+    (difference < 0) ifTrue: [
+      'You lost. Tough algorithm to beat ;)' displayNl.
+    ].
+    (difference > 0) ifTrue: [
+      'You won! You outsmarted them you clever bastard!' displayNl.
+    ].
 
     f close
     "add closest point to decision array"
