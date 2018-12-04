@@ -56,7 +56,6 @@ Object subclass: TSPSolver [
     | f numberOfPoints pointsSet count pointArray newPoint pathArray currentPoint minimum min_dist testX testY x_distance y_distance total_distance i j|
     "read in from the file"
     f := FileStream open: 'input.txt' mode: FileStream read.
-    "f linesDo: [ :c | Transcript nextPutAll: c; nl ]."
     numberOfPoints := f nextLine.
     "create array of size specified in file"
     pointsSet := Array new: numberOfPoints asInteger.
@@ -82,17 +81,10 @@ Object subclass: TSPSolver [
     minimum := Partier new.
     minimum setLocation_x: 0.
     minimum setLocation_y: 0.
+
     "Initialize all variables"
     count := 2.
     min_dist := 100.
-    "testX := 0.
-    testY := 0.
-    x_distance := 0.
-    y_distance := 0.
-    total_distance := 0.
-    minX := 0.
-    minY := 0.
-    min_dist := 0."
 
     numberOfPoints asInteger timesRepeat: [
       "loop through points to find closest"
@@ -101,12 +93,6 @@ Object subclass: TSPSolver [
         (testPoint == nil) ifFalse: [
           testX := (testPoint getLocation_x).
           testY := (testPoint getLocation_y).
-          "'test point' printNl.
-          testPoint getLocation_x printNl.
-          testPoint getLocation_y printNl.
-          'testx and testy' printNl.
-          testX printNl.
-          testY printNl."
           x_distance := (testX - (currentPoint getLocation_x)) abs.
           y_distance := (testY - (currentPoint getLocation_y)) abs.
           total_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) asFloatE sqrt.
@@ -115,8 +101,6 @@ Object subclass: TSPSolver [
             minimum setLocation_x: testX.
             minimum setLocation_y: testY.
             minimum setDistance: total_distance.
-            "minX := testX.
-            minY := testY."
             min_dist := total_distance.
           ].
         ].
