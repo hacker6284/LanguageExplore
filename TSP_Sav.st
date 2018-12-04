@@ -72,7 +72,7 @@ Object subclass: TSPSolver [
     ].
 
     "create array for storing decisions"
-    pathArray:= Array new: numberOfPoints asInteger.
+    pathArray:= Array new: (numberOfPoints asInteger) + 1.
 
     "Remove starting point"
     currentPoint := pointsSet at: 1.
@@ -95,10 +95,6 @@ Object subclass: TSPSolver [
     min_dist := 0."
 
     numberOfPoints asInteger timesRepeat: [
-      'current point' printNl.
-      currentPoint getLocation_x printNl.
-      currentPoint getLocation_y printNl.
-
       "loop through points to find closest"
       pointsSet do: [ :testPoint |
         "Because we're using an array, ignore the nil entries"
@@ -116,7 +112,6 @@ Object subclass: TSPSolver [
           total_distance := ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) asFloatE sqrt.
           "Sets the new minimum"
           (total_distance < min_dist) ifTrue: [
-            'New minimum' printNl.
             minimum setLocation_x: testX.
             minimum setLocation_y: testY.
             minimum setDistance: total_distance.
@@ -126,14 +121,10 @@ Object subclass: TSPSolver [
           ].
         ].
       ].
-      'next point' printNl.
-      minimum getLocation_x printNl.
-      minimum getLocation_y printNl.
       j := 1.
       pointsSet do: [ :testPoint |
         (testPoint == nil) ifFalse: [
           ((testPoint getLocation_x == (minimum getLocation_x)) and: [(testPoint getLocation_y == (minimum getLocation_y))]) ifTrue: [
-            'Adding point' printNl.
             "Reset the current position"
             currentPoint setLocation_x: (testPoint getLocation_x).
             currentPoint setLocation_y: (testPoint getLocation_y).
@@ -148,12 +139,26 @@ Object subclass: TSPSolver [
       ].
     ].
 
-    pointsSet size printNl.
+    "add initial point to the end of the path array"
+    pathArray at: (pathArray size) put: (pathArray at: 1) deepCopy.
+
+    "repurpose total_distance variable"
+    total_distance := 0.
+
+    "repurpose other variables"
+    currentPoint := pathArray at: 1.
 
     pathArray do: [ :testPoint |
-      testPoint getLocation_x printNl.
-      testPoint getLocation_y printNl.
+
+      x_distance := ((testPoint getLocation_x) - (currentPoint getLocation_x)) abs.
+      y_distance := ((testPoint getLocation_y) - (currentPoint getLocation_y)) abs.
+      total_distance := total_distance + ((x_distance raisedTo: 2) + (y_distance raisedTo: 2)) asFloatE sqrt.
+      currentPoint setLocation_x: (testPoint getLocation_x).
+      currentPoint setLocation_y: (testPoint getLocation_y).
     ].
+
+    'Total distance: ' display.
+    total_distance displayNl.
 
     f close
     "add closest point to decision array"
